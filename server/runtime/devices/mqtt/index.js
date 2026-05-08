@@ -361,7 +361,11 @@ function MQTTclient(_data, _logger, _events, _runtime) {
             utils.mergeObjectsValues(data.tags[tagId].daq, settings);
         }
     }
-
+    function getNestedValue(obj, path) {
+        return path.split('.').reduce((acc, key) => {
+            return acc && acc[key] !== undefined ? acc[key] : undefined;
+        }, obj);
+    }
     /**
      * Create a subscription to receive Topics value
      */
@@ -384,9 +388,16 @@ function MQTTclient(_data, _logger, _events, _runtime) {
                                     data.tags[id].changed = oldvalue !== data.tags[id].rawValue;
                                     if (data.tags[id].type === 'json' && data.tags[id].options && data.tags[id].options.subs && data.tags[id].memaddress) {
                                         try {
+                                            // var subitems = JSON.parse(data.tags[id].rawValue);
+                                            // if (!utils.isNullOrUndefined(subitems[data.tags[id].memaddress])) {
+                                            //     data.tags[id].rawValue = subitems[data.tags[id].memaddress];
+                                            // } else {
+                                            //     data.tags[id].rawValue = oldvalue;
+                                            // }
                                             var subitems = JSON.parse(data.tags[id].rawValue);
-                                            if (!utils.isNullOrUndefined(subitems[data.tags[id].memaddress])) {
-                                                data.tags[id].rawValue = subitems[data.tags[id].memaddress];
+                                            var nestedValue = getNestedValue(subitems, data.tags[id].memaddress);
+                                            if (!utils.isNullOrUndefined(nestedValue)) {
+                                                data.tags[id].rawValue = nestedValue;
                                             } else {
                                                 data.tags[id].rawValue = oldvalue;
                                             }

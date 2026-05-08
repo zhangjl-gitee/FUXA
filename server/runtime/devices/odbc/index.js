@@ -46,13 +46,43 @@ function ODBCclient(_data, _logger, _events) {
                                 security = utils.JsonTryToParse(result.value);
                             }
                         });
+                        // var connectionsString = data.property.address;
+                        // if (security.uid) {
+                        //     connectionsString += `;UID=${security.uid}`;
+                        // }
+                        // if (security.pwd) {
+                        //     connectionsString += `;PWD=${security.pwd}`;
+                        // }
+
                         var connectionsString = data.property.address;
-                        if (security.uid) {
-                            connectionsString += `;UID=${security.uid}`;
+
+
+                        var addressUpper = connectionsString.toUpperCase();
+                        var hasUidInAddress = addressUpper.includes('UID=') || addressUpper.includes('USER ID=') || addressUpper.includes('USER=');
+                        var hasPwdInAddress = addressUpper.includes('PWD=') || addressUpper.includes('PASSWORD=');
+
+
+                        if (security.uid && !hasUidInAddress) {
+                            // 确保连接字符串以分号结尾，然后追加
+                            if (!connectionsString.trim().endsWith(';')) {
+                                connectionsString += ';';
+                            }
+                            connectionsString += `UID=${security.uid};`;
                         }
-                        if (security.pwd) {
-                            connectionsString += `;PWD=${security.pwd}`;
+                        if (security.pwd && !hasPwdInAddress) {
+                            if (!connectionsString.trim().endsWith(';')) {
+                                connectionsString += ';';
+                            }
+                            connectionsString += `PWD=${security.pwd};`;
                         }
+
+
+                        if (!connectionsString.trim().endsWith(';')) {
+                            connectionsString += ';';
+                        }
+
+
+
                         const connectionConfig = {
                             connectionString: connectionsString,
                             connectionTimeout: 10,
@@ -273,13 +303,39 @@ function getTables(endpoint, fncGetProperty, packagerManager) {
                         security = utils.JsonTryToParse(result.value);
                     }
                 });
+                // var connectionsString = endpoint.address;
+                // if (endpoint.uid || security.uid) {
+                //     connectionsString += `;UID=${endpoint.uid || security.uid}`;
+                // }
+                // if (endpoint.pwd || security.pwd) {
+                //     connectionsString += `;PWD=${endpoint.pwd || security.pwd}`;
+                // }
                 var connectionsString = endpoint.address;
-                if (endpoint.uid || security.uid) {
-                    connectionsString += `;UID=${endpoint.uid || security.uid}`;
+
+
+                var addressUpper = connectionsString.toUpperCase();
+                var hasUidInAddress = addressUpper.includes('UID=') || addressUpper.includes('USER ID=') || addressUpper.includes('USER=');
+                var hasPwdInAddress = addressUpper.includes('PWD=') || addressUpper.includes('PASSWORD=');
+
+
+                if ((endpoint.uid || security.uid) && !hasUidInAddress) {
+                    if (!connectionsString.trim().endsWith(';')) {
+                        connectionsString += ';';
+                    }
+                    connectionsString += `UID=${endpoint.uid || security.uid};`;
                 }
-                if (endpoint.pwd || security.pwd) {
-                    connectionsString += `;PWD=${endpoint.pwd || security.pwd}`;
+                if ((endpoint.pwd || security.pwd) && !hasPwdInAddress) {
+                    if (!connectionsString.trim().endsWith(';')) {
+                        connectionsString += ';';
+                    }
+                    connectionsString += `PWD=${endpoint.pwd || security.pwd};`;
                 }
+
+                if (!connectionsString.trim().endsWith(';')) {
+                    connectionsString += ';';
+                }
+
+
                 const connectionConfig = {
                     connectionString: connectionsString,
                     connectionTimeout: 10,
