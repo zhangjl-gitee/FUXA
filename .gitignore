@@ -65,6 +65,29 @@ typings/
 # workspace
 *.code-workspace
 
+# IntelliJ IDEA / WebStorm
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/shelf/
+.idea/workspace-*.xml
+.idea/usage.statistics.xml
+.idea/assetwizardsettings.xml
+.idea/caches/
+.idea/gradle.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
+
+# VSCode (if used)
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+
 #appdata
 _appdata/
 
