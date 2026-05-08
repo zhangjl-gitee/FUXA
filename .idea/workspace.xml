@@ -5,18 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="93064d0b-1cd1-4766-8eb7-e254b1b061dd" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/runtime/devices/ethernetip/plc_bridge.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/test_odbc.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/runtime/devices/ethernetip/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/runtime/devices/ethernetip/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/runtime/devices/mqtt/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/runtime/devices/mqtt/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/runtime/devices/odbc/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/server/runtime/devices/odbc/index.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,7 +35,7 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "master",
+    "git-widget-placeholder": "my-fuxa",
     "last_opened_file_path": "D:/FUXA/server/runtime/devices/ethernetip",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -53,7 +44,7 @@
     "nodejs_package_manager_path": "npm",
     "npm.start.executor": "Run",
     "settings.editor.selected.configurable": "coverage",
-    "ts.external.directory.path": "D:\\FUXA\\server\\node_modules\\typescript\\lib",
+    "ts.external.directory.path": "D:\\WebStorm 2023.3.4\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -90,7 +81,7 @@
       <workItem from="1777944883734" duration="171000" />
       <workItem from="1777945079497" duration="370000" />
       <workItem from="1777947049834" duration="61000" />
-      <workItem from="1777947157358" duration="8673000" />
+      <workItem from="1777947157358" duration="15625000" />
     </task>
     <servers />
   </component>

@@ -38,21 +38,14 @@
     "modbus-serial": "8.0.19",
     "morgan": "1.10.0",
     "mqtt": "4.3.7",
-<<<<<<< Updated upstream
-=======
     "mssql": "^9.1.1",
->>>>>>> Stashed changes
     "node-bacnet": "0.2.4",
     "node-opcua": "2.149.0",
     "node-red": "^4.1.0",
     "node-schedule": "2.1.1",
     "nodemailer": "7.0.7",
     "nopt": "5.0.0",
-<<<<<<< Updated upstream
-    "odbc": "2.4.9",
-=======
     "odbc": "^2.4.9",
->>>>>>> Stashed changes
     "pdfmake": "0.2.5",
     "socket.io": "4.8.1",
     "sqlite3": "5.1.5",

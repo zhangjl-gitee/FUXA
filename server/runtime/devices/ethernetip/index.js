@@ -37,12 +37,10 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
     // 检测Python环境
     const _checkPython = async () => {
         try {
-            // 执行版本命令验证Python环境
             await execAsync(`"${pythonPath}" --version`);
             logger.info(`已找到Python环境: ${pythonPath}`);
             return true;
         } catch (err) {
-            // 自动尝试python3作为备选
             logger.warn(`Python路径"${pythonPath}"不可用，尝试python3`);
             pythonPath = 'python3';
             try {
@@ -56,16 +54,14 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
         }
     };
 
-    // 执行Python脚本的通用方法（增强错误处理）
+    // 执行Python脚本的通用方法
     const _runPythonCommand = async (command, tagName, value = '') => {
         try {
-            // 构建命令（处理路径中的空格和特殊字符）
             const escapedTagName = tagName.replace(/"/g, '\\"');
             const escapedValue = value.toString().replace(/"/g, '\\"');
             const cmd = `"${pythonPath}" "${bridgeScriptPath}" "${command}" "${PLC_IP}" "${escapedTagName}" "${escapedValue}"`;
             logger.debug(`执行Python命令: ${cmd}`);
 
-            // 执行并设置超时
             const { stdout, stderr } = await Promise.race([
                 execAsync(cmd),
                 new Promise((_, reject) =>
@@ -73,12 +69,10 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
                 )
             ]);
 
-            // 处理标准错误输出
             if (stderr && stderr.trim() !== '') {
                 logger.warn(`Python脚本警告: ${stderr.trim()}`);
             }
 
-            // 解析JSON结果
             try {
                 return JSON.parse(stdout);
             } catch (parseErr) {
@@ -110,15 +104,12 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
 
             working = true;
             try {
-                // 检查Python环境
                 if (!await _checkPython()) {
                     return reject(new Error("Python环境检测失败"));
                 }
 
-                // 测试连接（读取测试标签）
                 logger.info(`测试连接到 ${PLC_IP}，读取测试标签: ${TEST_TAG}`);
 
-                // 带重试的连接测试
                 let lastError;
                 for (let i = 0; i < MAX_RETRIES; i++) {
                     const result = await _runPythonCommand('read', TEST_TAG);
@@ -130,7 +121,7 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
                     lastError = result.error;
                     logger.warn(`连接测试尝试 ${i+1}/${MAX_RETRIES} 失败: ${lastError}`);
                     if (i < MAX_RETRIES - 1) {
-                        await new Promise(res => setTimeout(res, 1000 * (i+1))); // 指数退避等待
+                        await new Promise(res => setTimeout(res, 1000 * (i+1)));
                     }
                 }
 
@@ -138,7 +129,6 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
                     return reject(new Error(`连接测试失败: ${lastError}`));
                 }
 
-                // 连接成功
                 connected = true;
                 _emitStatus('connect-ok');
                 await _loadTagsToPLC();
@@ -170,9 +160,8 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
 
         working = true;
         try {
-            // 批量读取标签（添加并发控制）
             const tagEntries = Array.from(tagMap.entries());
-            const batchSize = 5; // 每次并发读取5个标签，避免请求过多
+            const batchSize = 5;
             for (let i = 0; i < tagEntries.length; i += batchSize) {
                 const batch = tagEntries.slice(i, i + batchSize);
                 await Promise.all(batch.map(async ([tagId, { plcTag }]) => {
@@ -190,7 +179,6 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
                 }));
             }
 
-            // 更新变量值
             const changed = await _updateVarsValue();
             lastTimestampValue = Date.now();
             _emitValues(varsValue);
@@ -242,7 +230,6 @@ function EthernetIPDriver(_data, _logger, _events, _runtime) {
             const { fuxaTag, plcTag } = tagMap.get(tagId);
             const valueToSend = await deviceUtils.tagRawCalculator(value, fuxaTag, runtime);
 
-            // 写入带重试
             let result;
             for (let i = 0; i < MAX_RETRIES; i++) {
                 result = await _runPythonCommand('write', plcTag.name, valueToSend);
@@ -346,14 +333,6 @@ module.exports = {
     init: function (settings) {
     },
     create: function (data, logger, events, manager, runtime) {
-<<<<<<< Updated upstream
-        // To use with plugin
-        try { EthernetIp = require('nodepccc'); } catch { }
-        if (!EthernetIp && manager) { try { EthernetIp = manager.require('nodepccc'); } catch { } }
-        if (!EthernetIp) return null;
-        return new EthernetIPclient(data, logger, events, runtime);
-=======
         return new EthernetIPDriver(data, logger, events, manager, runtime);
->>>>>>> Stashed changes
     }
 }
