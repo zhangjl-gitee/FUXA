@@ -51,6 +51,18 @@ module.exports = {
 
         // POST scheduler data
         schedulerApp.post("/api/scheduler", secureFnc, function(req, res) {
+            if (res.statusCode === 403) {
+                runtime.logger.error("api post scheduler: Tocken Expired");
+                return;
+            }
+            const permission = checkGroupsFnc(req);
+            const isGuest = authJwt.isGuestUser(req.userId, req.userGroups);
+            const isAdmin = authJwt.haveAdminPermission(permission);
+            if (runtime.settings?.secureEnabled && isGuest) {
+                res.status(401).json({error:"unauthorized_error", message: "Unauthorized!"});
+                runtime.logger.error("api post scheduler: Unauthorized guest");
+                return;
+            }
             try {
                 if (req.body && req.body.id && req.body.data !== undefined) {
                     var schedulerId = req.body.id;
@@ -60,14 +72,26 @@ module.exports = {
                     runtime.logger.info('[API POST SCHEDULER] Received data for scheduler: ' + schedulerId);
                     runtime.logger.info('[API POST SCHEDULER] Settings: ' + JSON.stringify(schedulerData.settings, null, 2));
                     runtime.logger.info('[API POST SCHEDULER] Device Actions: ' + JSON.stringify(schedulerData.settings?.deviceActions, null, 2));
-                    
-                    const validation = validateSchedulerData(schedulerData);
-                    if (!validation.valid) {
-                        runtime.logger.error("Invalid scheduler data: " + validation.error);
-                        return res.status(400).json({ error: 'Invalid scheduler data: ' + validation.error });
-                    }
-                    
+
                     runtime.schedulerStorage.getSchedulerData(schedulerId).then(oldData => {
+                        if (runtime.settings?.secureEnabled && !isAdmin) {
+                            if (!oldData || !oldData.settings) {
+                                runtime.logger.error("api post scheduler: Unauthorized scheduler settings change");
+                                res.status(401).json({error:"unauthorized_error", message: "Unauthorized!"});
+                                return null;
+                            }
+                            schedulerData = Object.assign({}, oldData, {
+                                schedules: schedulerData.schedules || {}
+                            });
+                        }
+
+                        const validation = validateSchedulerData(schedulerData);
+                        if (!validation.valid) {
+                            runtime.logger.error("Invalid scheduler data: " + validation.error);
+                            res.status(400).json({ error: 'Invalid scheduler data: ' + validation.error });
+                            return null;
+                        }
+
                         return runtime.schedulerStorage.setSchedulerData(schedulerId, schedulerData).then(result => {
                             runtime.logger.info('[API POST SCHEDULER] Data saved successfully to database');
                             res.json({ result: 'ok' });
@@ -90,6 +114,17 @@ module.exports = {
 
         // DELETE scheduler data
         schedulerApp.delete("/api/scheduler", secureFnc, function(req, res) {
+            if (res.statusCode === 403) {
+                runtime.logger.error("api delete scheduler: Tocken Expired");
+                return;
+            }
+            const permission = checkGroupsFnc(req);
+            const isGuest = authJwt.isGuestUser(req.userId, req.userGroups);
+            if (runtime.settings?.secureEnabled && (isGuest || !authJwt.haveAdminPermission(permission))) {
+                res.status(401).json({error:"unauthorized_error", message: "Unauthorized!"});
+                runtime.logger.error("api delete scheduler: admin permission required");
+                return;
+            }
             try {
                 if (req.query && req.query.id) {
                     var schedulerId = req.query.id;

@@ -301,6 +301,9 @@ export class ProjectService {
             Object.assign(existingView, view);
         } else if (!this.projectData.hmi.views.some(v => v.name === view.name)) {
             this.projectData.hmi.views.push(view);
+        } else {
+            console.warn(`View '${view.name}' already exists with a different id. Save skipped.`);
+            return;
         }
         this.storage.setServerProjectData(ProjectDataCmdType.SetView, view, this.projectData).subscribe(result => {
             if (notify) {
@@ -313,11 +316,15 @@ export class ProjectService {
     }
 
     async setViewAsync(view: View, notify = false): Promise<void> {
+        this.cleanView(view);
         const existingView = this.projectData.hmi.views.find(v => v.id === view.id);
         if (existingView) {
             Object.assign(existingView, view);
         } else if (!this.projectData.hmi.views.some(v => v.name === view.name)) {
             this.projectData.hmi.views.push(view);
+        } else {
+            console.warn(`View '${view.name}' already exists with a different id. Save skipped.`);
+            return;
         }
         await firstValueFrom(this.storage.setServerProjectData(ProjectDataCmdType.SetView, view, this.projectData));
         if (notify) {

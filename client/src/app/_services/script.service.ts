@@ -98,12 +98,24 @@ export class ScriptService {
                     const asyncText = script.sync ? 'function' : 'async function';
                     const callText = `${asyncText} ${script.name}() {\n${this.addSysFunctions(code)} \n }\n${script.name}.call(this);\n`;
                     const result = eval(callText);
-                    observer.next(result);
+
+                    if (result && typeof result.then === 'function') {
+                        result
+                            .then(res => {
+                                observer.next(res);
+                                observer.complete(); // async case
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                observer.error(err);
+                            });
+                    } else {
+                        observer.next(result);
+                        observer.complete(); // sync case
+                    }
                 } catch (err) {
                     console.error(err);
                     observer.error(err);
-                } finally {
-                    observer.complete();
                 }
             }
         });
@@ -229,6 +241,9 @@ export class ScriptService {
 
     public async $runServerScript(scriptName: string, ...params: any[]) {
         let scriptToRun = Utils.clone(this.projectService.getScripts().find(dataScript => dataScript.name == scriptName));
+        if (!scriptToRun) {
+            return null;
+        }
         scriptToRun.parameters = params;
         return await lastValueFrom(this.runScript(scriptToRun, false));
     }

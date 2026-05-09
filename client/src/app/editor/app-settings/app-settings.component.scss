@@ -27,8 +27,7 @@
             }
 
             .tab-system-col-right {
-                width: 340px;
-                margin-left: auto;
+                width: 330px;
             }
         }
 
@@ -47,6 +46,15 @@
 
     .system-input {
         width: 320px;
+    }
+
+    .system-input mat-select {
+        width: 100%;
+    }
+
+    .system-input input {
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .node-red-info {

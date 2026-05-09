@@ -35,7 +35,7 @@ export class ChartUplotComponent implements OnInit, AfterViewInit, OnDestroy {
     reloadActive = false;
     private lastDaqQuery = new DaqQuery();
     rangeTypeValue = Utils.getEnumKey(ChartRangeType, ChartRangeType.last8h);
-    rangeType: ChartRangeType;
+    rangeType: typeof ChartRangeType;
     range: ZoomRangeType = { from: Date.now(), to: Date.now(), zoomStep: 0 };
     mapData: MapDataDictionary = {};
     pauseMemoryValue: ValueDictionary = {};
@@ -63,6 +63,7 @@ export class ChartUplotComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.options) {
             this.options = ChartUplotComponent.DefaultOptions();
         }
+        this.rangeType = ChartRangeType;
     }
 
     ngAfterViewInit() {
@@ -88,6 +89,10 @@ export class ChartUplotComponent implements OnInit, AfterViewInit, OnDestroy {
         } catch (e) {
             console.error(e);
         }
+    }
+
+    getRangeTypeLabel() {
+        return ChartRangeType[this.rangeTypeValue] || this.rangeTypeValue;
     }
 
     onClick(evStep: string) {
@@ -118,6 +123,7 @@ export class ChartUplotComponent implements OnInit, AfterViewInit, OnDestroy {
             this.zoomSize = 0;
         }
         if (ev) {
+            this.rangeTypeValue = ev;
             this.range.from = Date.now();
             this.range.to = Date.now();
             let timeStep = ChartRangeConverter.ChartRangeToHours(ev) * 60 * 60;
@@ -134,6 +140,9 @@ export class ChartUplotComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     onDateRange() {
+        if (this.isEditor) {
+            return;
+        }
         let dialogRef = this.dialog.open(DaterangeDialogComponent, {
             panelClass: 'light-dialog-container'
         });
@@ -574,6 +583,9 @@ export class ChartUplotComponent implements OnInit, AfterViewInit, OnDestroy {
             title: 'Title', fontFamily: 'Roboto-Regular', legendFontSize: 12, colorBackground: 'rgba(255,255,255,0)', legendBackground: 'rgba(255,255,255,0)',
             titleHeight: 18, axisLabelFontSize: 12, labelsDivWidth: 0, axisLineColor: 'rgba(0,0,0,1)', axisLabelColor: 'rgba(0,0,0,1)',
             legendMode: 'always', series: [], width: 360, height: 200, decimalsPrecision: 2, realtime: 60,
+            mouseWheelScroll: false,
+            mouseWheelZoom: false,
+            staticChart: false,
             dateFormat: Utils.getEnumKey(DateFormatType, DateFormatType.MM_DD_YYYY),
             timeFormat: Utils.getEnumKey(TimeFormatType, TimeFormatType.hh_mm_ss_AA)
         };

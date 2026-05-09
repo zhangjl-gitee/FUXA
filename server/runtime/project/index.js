@@ -181,7 +181,11 @@ function setProjectData(cmd, value) {
             if (cmd === ProjectDataCmdType.SetView) {
                 section.table = prjstorage.TableType.VIEWS;
                 section.name = value.id;
-                setView(value);
+                if (!setView(value)) {
+                    logger.warn(`project.set-view skipped duplicate view name '${value.name}' with id '${value.id}'`);
+                    resolve(true);
+                    return;
+                }
             } else if (cmd === ProjectDataCmdType.DelView) {
                 section.table = prjstorage.TableType.VIEWS;
                 section.name = value.id;
@@ -293,16 +297,22 @@ function setProjectData(cmd, value) {
  */
 function setView(view) {
     var pos = -1;
+    var sameNamePos = -1;
     for (var i = 0; i < data.hmi.views.length; i++) {
         if (data.hmi.views[i].id === view.id) {
             pos = i;
+        } else if (data.hmi.views[i].name === view.name) {
+            sameNamePos = i;
         }
     }
     if (pos >= 0) {
         data.hmi.views[pos] = view;
+    } else if (sameNamePos >= 0) {
+        return false;
     } else {
         data.hmi.views.push(view);
     }
+    return true;
 }
 
 /**
@@ -731,6 +741,13 @@ function getDevices() {
 }
 
 /**
+ * Return internal FUXA server device
+ */
+function getServer() {
+    return data.devices['0'] || data.server || null;
+}
+
+/**
  * Return Device from name
  */
 function getDevice(name) {
@@ -928,6 +945,22 @@ function _filterProjectPermission(userPermission) {
         // from device remove the not used (no permission)
         // delete result.devices;
         delete result.server;
+        if (Array.isArray(result.scripts)) {
+            // Keep only scripts authorised for the current user. For authorised
+            // server-side scripts, retain just the metadata needed for event
+            // bindings and execution requests; do not expose source code.
+            result.scripts = result.scripts.filter(script => {
+                return script && runtime.scriptsMgr.isAuthorised(script, userPermission);
+            }).map(script => {
+                delete script.permission;
+                delete script.permissionRoles;
+                if (script.mode === 'CLIENT') {
+                    return script;
+                }
+                delete script.code;
+                return script;
+            });
+        }
         // check navigation permission
         if (result.hmi.layout && result.hmi.layout.navigation.items) {
             for (var i = result.hmi.layout.navigation.items.length - 1; i >= 0; i--) {
@@ -1063,6 +1096,7 @@ module.exports = {
     init: init,
     load: load,
     getDevices: getDevices,
+    getServer: getServer,
     getDevice: getDevice,
     getAlarms: getAlarms,
     getNotifications: getNotifications,

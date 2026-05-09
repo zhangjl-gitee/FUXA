@@ -1,9 +1,11 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
+const utils = require('../runtime/utils');
 
 var secureEnabled = false;
-var secretCode = 'frangoteam751';
+// Runtime fallback secret used only when no persistent secret is configured.
+var secretCode = utils.generateSecretCode();
 var tokenExpiresIn = 60 * 60;   // 60 minutes
 const adminGroups = [-1, 255];
 
@@ -132,6 +134,16 @@ function getGuestToken() {
     return token;
 }
 
+function isGuestUser(userId, userGroups) {
+    if (userId === 'guest') {
+        return true;
+    }
+    if (Array.isArray(userGroups) && userGroups.includes('guest')) {
+        return true;
+    }
+    return false;
+}
+
 function haveAdminPermission(permission) {
     if (permission === null || permission === undefined) {
         return false;
@@ -156,5 +168,6 @@ module.exports = {
     get secretCode() { return secretCode },
     get tokenExpiresIn() { return tokenExpiresIn },
     haveAdminPermission: haveAdminPermission,
-    adminGroups: adminGroups
+    adminGroups: adminGroups,
+    isGuestUser: isGuestUser
 };

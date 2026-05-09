@@ -132,6 +132,16 @@ try {
         if (mysettings.language) {
             settings.language = mysettings.language;
         }
+        if (!utils.isNullOrUndefined(mysettings.hideEditorOnboarding)) {
+            settings.hideEditorOnboarding = mysettings.hideEditorOnboarding;
+        }
+        if (mysettings.editorSectionMessages) {
+            settings.editorSectionMessages = Object.assign(
+                {},
+                settings.editorSectionMessages || {},
+                mysettings.editorSectionMessages
+            );
+        }
         if (mysettings.uiPort) {
             settings.uiPort = mysettings.uiPort;
         }
@@ -146,6 +156,15 @@ try {
         }
         if (mysettings.tokenExpiresIn) {
             settings.tokenExpiresIn = mysettings.tokenExpiresIn;
+        }
+        if (!utils.isNullOrUndefined(mysettings.enableRefreshCookieAuth)) {
+            settings.enableRefreshCookieAuth = mysettings.enableRefreshCookieAuth;
+        }
+        if (mysettings.refreshTokenExpiresIn) {
+            settings.refreshTokenExpiresIn = mysettings.refreshTokenExpiresIn;
+        }
+        if (mysettings.secretCode) {
+            settings.secretCode = mysettings.secretCode;
         }
         if (mysettings.smtp) {
             settings.smtp = mysettings.smtp;
@@ -171,12 +190,24 @@ try {
         if (!utils.isNullOrUndefined(mysettings.nodeRedEnabled)) {
             settings.nodeRedEnabled = mysettings.nodeRedEnabled;
         }
+        if (!utils.isNullOrUndefined(mysettings.nodeRedAuthMode)) {
+            settings.nodeRedAuthMode = mysettings.nodeRedAuthMode;
+        }
         if (!utils.isNullOrUndefined(mysettings.swaggerEnabled)) {
             settings.swaggerEnabled = mysettings.swaggerEnabled;
+        }
+        if (mysettings.nodeRedEnabled === true && utils.isNullOrUndefined(mysettings.nodeRedAuthMode)) {
+            settings.nodeRedAuthMode = 'legacy-open';
         }
     }
 } catch (err) {
     logger.error('Error loading user settings file: ' + userSettingsFile)
+}
+
+// Ensure secure mode never runs with an empty/static-known JWT secret.
+if (settings.secureEnabled && !settings.secretCode) {
+    settings.secretCode = utils.generateSecretCode();
+    logger.warn('Generated a random JWT secret in memory because secureEnabled=true and secretCode was missing. Persist it in settings for stable sessions across restarts.');
 }
 
 // Check logger
@@ -312,10 +343,13 @@ const allowCrossDomain = function (req, res, next) {
 
     if (isOriginAllowed(origin)) {
         res.header('Access-Control-Allow-Origin', origin || '*');
+        if (settings.enableRefreshCookieAuth) {
+            res.header('Access-Control-Allow-Credentials', 'true');
+        }
     }
 
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'x-access-token, x-auth-user, Origin, Content-Type, Accept');
+    res.header('Access-Control-Allow-Headers', 'x-access-token, x-auth-user, Origin, Content-Type, Accept, Skip-Auth, Skip-Error');
 
 
     if (req.method === 'OPTIONS') {
@@ -330,6 +364,7 @@ app.use('/home/:viewName', express.static(settings.httpStatic));
 app.use('/lab', express.static(settings.httpStatic));
 app.use('/editor', express.static(settings.httpStatic));
 app.use('/device', express.static(settings.httpStatic));
+app.use('/plugins', express.static(settings.httpStatic));
 app.use('/rodevice', express.static(settings.httpStatic));
 app.use('/users', express.static(settings.httpStatic));
 app.use('/view', express.static(settings.httpStatic));
@@ -339,22 +374,24 @@ app.use('/_widgets', express.static(settings.widgetsFileDir));
 app.use('/snapshots', express.static(settings.webcamSnapShotsDir))
 
 var accessLogStream = fs.createWriteStream(settings.logDir + '/api.log', { flags: 'a' });
-app.use(morgan('combined', {
-    stream: accessLogStream,
-    skip: function (req, res) { return res.statusCode < 400 }
-}));
+if (runtime.settings.logApiLevel !== 'none') {
+	app.use(morgan('combined', {
+		stream: accessLogStream,
+		skip: function (req, res) { return res.statusCode < 400 }
+	}));
 
-app.use(morgan('dev', {
-    skip: function (req, res) {
-        return res.statusCode < 400
-    }, stream: process.stderr
-}));
+	app.use(morgan('dev', {
+		skip: function (req, res) {
+			return res.statusCode < 400
+		}, stream: process.stderr
+	}));
 
-app.use(morgan('dev', {
-    skip: function (req, res) {
-        return res.statusCode >= 400
-    }, stream: process.stdout
-}));
+	app.use(morgan('dev', {
+		skip: function (req, res) {
+			return res.statusCode >= 400
+		}, stream: process.stdout
+	}));
+}
 
 function mountSwaggerIfEnabled() {
     const swaggerEnabled = settings.swagger || settings.swaggerEnabled;
